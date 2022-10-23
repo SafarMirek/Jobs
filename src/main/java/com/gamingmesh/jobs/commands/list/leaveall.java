@@ -49,8 +49,8 @@ public class leaveall implements Cmd {
 	    Util.LEAVECONFIRM.remove(uuid);
 	}
 
-	Jobs.getPlayerManager().leaveAllJobs(jPlayer);
-	sender.sendMessage(Jobs.getLanguage().getMessage("command.leaveall.success"));
+	//Jobs.getPlayerManager().leaveAllJobs(jPlayer);
+	sender.sendMessage("§cPříkaz blokován.");
 	return true;
     }
 }

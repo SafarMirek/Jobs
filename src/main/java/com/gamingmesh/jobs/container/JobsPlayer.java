@@ -18,6 +18,7 @@
 
 package com.gamingmesh.jobs.container;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -98,6 +100,8 @@ public class JobsPlayer {
     private PlayerPoints pointsData = new PlayerPoints();
 
     private Set<String> blockOwnerShipInform = null;
+
+	private long lastLeftJobMillis = 0L;
 
     public JobsPlayer(OfflinePlayer player) {
 	this.userName = player.getName() == null ? "Unknown" : player.getName();
@@ -1456,4 +1460,13 @@ public class JobsPlayer {
 	    blockOwnerShipInform = new HashSet<String>();
 	this.blockOwnerShipInform.add(location);
     }
+
+	public long getLastLeftJobMillis() {
+		return lastLeftJobMillis;
+	}
+
+	public void setLastLeftJobMillis(long lastLeftJobMillis) {
+		this.lastLeftJobMillis = lastLeftJobMillis;
+		CompletableFuture.runAsync(() -> Jobs.getJobsDAO().setLastLeftJobMillis(JobsPlayer.this, lastLeftJobMillis));
+	}
 }
