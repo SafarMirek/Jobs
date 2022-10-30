@@ -766,21 +766,18 @@ public abstract class JobsDAO {
 
 	public long getLastLeftJobMillis(JobsPlayer jobsPlayer) {
 		long lastLeftJobMillis = 0L;
-		try (Connection connection = getConnection().getConnection()) {
-			if (connection == null || jobsPlayer == null) {
-				return 0L;
-			}
-			try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT last_left_job_millis FROM `" +
-					DBTables.UsersTable.getTableName() + "` WHERE `" + ArchiveTableFields.userid.getCollumn() + "` = ?;")) {
+		Connection connection = getConnection().getConnection();
+		if (connection == null || jobsPlayer == null) {
+			return 0L;
+		}
+		try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT last_left_job_millis FROM `" +
+				DBTables.UsersTable.getTableName() + "` WHERE `id` = ?;")) {
 
-				preparedStatement.setInt(1, jobsPlayer.getUserId());
-				try (ResultSet resultSet = preparedStatement.executeQuery()) {
-					while (resultSet.next()) {
-						lastLeftJobMillis = resultSet.getLong("last_left_job_millis");
-					}
+			preparedStatement.setInt(1, jobsPlayer.getUserId());
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					lastLeftJobMillis = resultSet.getLong("last_left_job_millis");
 				}
-			} catch (SQLException e) {
-				e.printStackTrace();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -789,19 +786,15 @@ public abstract class JobsDAO {
 	}
 
 	public void setLastLeftJobMillis(JobsPlayer jobsPlayer, long lastLeftJobMillis) {
-		try (Connection connection = getConnection().getConnection()) {
-			if (connection == null || jobsPlayer == null) {
-				return;
-			}
-			try (PreparedStatement preparedStatement = connection.prepareStatement("UPDATE `" + DBTables.UsersTable.getTableName() + "` SET last_left_job_millis = ? WHERE `" +
-					ArchiveTableFields.userid.getCollumn() + "` = ?;")) {
+		Connection connection = getConnection().getConnection();
+		if (connection == null || jobsPlayer == null) {
+			return;
+		}
+		try (PreparedStatement preparedStatement = connection.prepareStatement("UPDATE `" + DBTables.UsersTable.getTableName() + "` SET last_left_job_millis = ? WHERE `id` = ?;")) {
 
-				preparedStatement.setLong(1, lastLeftJobMillis);
-				preparedStatement.setInt(2, jobsPlayer.getUserId());
-				preparedStatement.executeUpdate();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			preparedStatement.setLong(1, lastLeftJobMillis);
+			preparedStatement.setInt(2, jobsPlayer.getUserId());
+			preparedStatement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
