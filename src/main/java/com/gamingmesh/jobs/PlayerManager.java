@@ -27,6 +27,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -242,6 +243,8 @@ public class PlayerManager {
                 jPlayer.setPaymentLimit(Jobs.getJobsDAO().getPlayersLimits(jPlayer));
                 jPlayer.setPoints(Jobs.getJobsDAO().getPlayerPoints(jPlayer));
             }
+
+            jPlayer.setLastLeftJobMillis(Jobs.getJobsDAO().getLastLeftJobMillis(jPlayer));
 
             // Lets load quest progression
             PlayerInfo info = Jobs.getJobsDAO().loadPlayerData(player.getUniqueId());
@@ -501,6 +504,13 @@ public class PlayerManager {
         if (jobsLeaveEvent.isCancelled())
             return false;
 
+        if (!jPlayer.getPlayer().hasPermission("jobs.maxleavebypass")) {
+            if (jPlayer.getLastLeftJobMillis() != 0 && System.currentTimeMillis() - jPlayer.getLastLeftJobMillis() < TimeUnit.DAYS.toMillis(1)) {
+                jPlayer.getPlayer().sendMessage("§8[§cPráce§8] §cMůžeš opustit pouze 1 zaměstnání za 24h!");
+                return false;
+            }
+        }
+
         Jobs.getJobsDAO().recordToArchive(jPlayer, job);
 
         // let the user leave the job
@@ -509,6 +519,8 @@ public class PlayerManager {
 
         if (!Jobs.getJobsDAO().quitJob(jPlayer, job))
             return false;
+
+        jPlayer.setLastLeftJobMillis(System.currentTimeMillis());
 
         PerformCommands.performCommandsOnLeave(jPlayer, job);
         Jobs.leaveSlot(job);

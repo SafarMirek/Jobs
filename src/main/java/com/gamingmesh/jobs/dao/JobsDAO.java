@@ -1,9 +1,6 @@
 package com.gamingmesh.jobs.dao;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -127,7 +124,8 @@ public abstract class JobsDAO {
 	username("text"),
 	seen("bigint"),
 	donequests("int"),
-	quests("text");
+	quests("text"),
+	last_left_job_millis("bigint");
 
 	private String type;
 
@@ -765,6 +763,42 @@ public abstract class JobsDAO {
 	}
 	return map;
     }
+
+	public long getLastLeftJobMillis(JobsPlayer jobsPlayer) {
+		long lastLeftJobMillis = 0L;
+		Connection connection = getConnection().getConnection();
+		if (connection == null || jobsPlayer == null) {
+			return 0L;
+		}
+		try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT last_left_job_millis FROM `" +
+				DBTables.UsersTable.getTableName() + "` WHERE `id` = ?;")) {
+
+			preparedStatement.setInt(1, jobsPlayer.getUserId());
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					lastLeftJobMillis = resultSet.getLong("last_left_job_millis");
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return lastLeftJobMillis;
+	}
+
+	public void setLastLeftJobMillis(JobsPlayer jobsPlayer, long lastLeftJobMillis) {
+		Connection connection = getConnection().getConnection();
+		if (connection == null || jobsPlayer == null) {
+			return;
+		}
+		try (PreparedStatement preparedStatement = connection.prepareStatement("UPDATE `" + DBTables.UsersTable.getTableName() + "` SET last_left_job_millis = ? WHERE `id` = ?;")) {
+
+			preparedStatement.setLong(1, lastLeftJobMillis);
+			preparedStatement.setInt(2, jobsPlayer.getUserId());
+			preparedStatement.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
     public ArchivedJobs getArchivedJobs(JobsPlayer player) {
 	ArchivedJobs jobs = new ArchivedJobs();
@@ -2491,7 +2525,7 @@ public abstract class JobsDAO {
 			    prest2.setInt(1, id);
 			    prest2.setInt(2, region.getValue().getChunkGlobalX(oneChunk.getKey()));
 			    prest2.setInt(3, region.getValue().getChunkGlobalZ(oneChunk.getKey()));
-			    prest2.setString(4, chunk.serializeNames()); 
+			    prest2.setString(4, chunk.serializeNames());
 			    prest2.setString(5, jobsWorld != null ? jobsWorld.getName() : "");
 			    prest2.addBatch();
 			    i++;
